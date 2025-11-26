@@ -1,65 +1,216 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "./firebase/firebaseConfig";
+import { CalendarDaysIcon, UserIcon } from "@heroicons/react/24/outline";
 
 export default function Home() {
+  const [nome, setNome] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [dataReuniao, setDataReuniao] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  // MODAL DE ALERTA (erro ou sucesso)
+  const [modalMsg, setModalMsg] = useState<{
+    tipo: "erro" | "sucesso" | null;
+    texto: string;
+  }>({ tipo: null, texto: "" });
+
+  // MODAL DE CONFIRMAÇÃO
+  const [confirmarEnvio, setConfirmarEnvio] = useState(false);
+
+  function abrirModal(tipo: "erro" | "sucesso", texto: string) {
+    setModalMsg({ tipo, texto });
+  }
+
+  function fecharModal() {
+    setModalMsg({ tipo: null, texto: "" });
+  }
+
+  // FORMATA A DATA
+  function formatarData(e: any) {
+    let valor = e.target.value.replace(/\D/g, "");
+    if (valor.length > 2) valor = valor.replace(/^(\d{2})(\d)/, "$1/$2");
+    if (valor.length > 5) valor = valor.replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
+    setDataReuniao(valor);
+  }
+
+  // CLICK NO BOTÃO "ENVIAR" → ABRE MODAL DE CONFIRMAÇÃO
+  function tentarEnviar(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!nome.trim() || !motivo.trim() || !dataReuniao.trim()) {
+      abrirModal("erro", "Preencha todos os campos.");
+      return;
+    }
+
+    setConfirmarEnvio(true); // abre modal
+  }
+
+  // CONFIRMAR ENVIO → SALVA NO FIRESTORE
+  async function enviar() {
+    setConfirmarEnvio(false);
+    setEnviando(true);
+
+    try {
+      await addDoc(collection(db, "justificativas"), {
+        nome,
+        motivo,
+        dataReuniao,
+        enviadoEm: Timestamp.now(),
+      });
+
+      setNome("");
+      setMotivo("");
+      setDataReuniao("");
+
+      abrirModal("sucesso", "Justificativa enviada com sucesso!");
+    } catch (err) {
+      abrirModal("erro", "Erro ao enviar. Tente novamente.");
+      console.error(err);
+    }
+
+    setEnviando(false);
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6 pt-20">
+
+      {/* NAVBAR */}
+      <header className="fixed top-0 left-0 w-full bg-blue-600 shadow-md z-50">
+        <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
+          <h1 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
+            <span className="text-4xl">📝</span>
+            PIA CRUZEIRO – REGISTRO DE JUSTIFICATIVA DE AUSÊNCIA
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+          <button
+            onClick={() => (window.location.href = "/admin")}
+            className="px-4 py-2 rounded-lg font-semibold text-blue-900 bg-blue-200 hover:bg-blue-300 transition shadow-md"
+          >
+            Área Administrativa
+          </button>
+        </div>
+      </header>
+
+      {/* MODAL DE ALERTA (ERRO OU SUCESSO) */}
+      {modalMsg.tipo && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 text-center">
+
+            <h2
+              className={`text-xl font-bold mb-4 ${
+                modalMsg.tipo === "erro" ? "text-red-600" : "text-green-600"
+              }`}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              {modalMsg.tipo === "erro" ? "⚠ Erro" : "✅ Sucesso"}
+            </h2>
+
+            <p className="text-gray-700 mb-6">{modalMsg.texto}</p>
+
+            <button
+              onClick={fecharModal}
+              className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
             >
-              Learning
-            </a>{" "}
-            center.
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO */}
+      {confirmarEnvio && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-xl shadow-xl p-6 text-center">
+
+            <h2 className="text-xl font-bold mb-4 text-blue-700">
+              Confirmar Envio?
+            </h2>
+
+            <p className="text-gray-700 mb-6">
+              Deseja realmente enviar esta justificativa?
+            </p>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setConfirmarEnvio(false)}
+                className="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={enviar}
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+              >
+                Enviar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* CARD */}
+      <div className="bg-white shadow-xl rounded-xl p-10 w-full max-w-xl border border-gray-200">
+
+        <div className="bg-gradient-to-r from-blue-600 to-blue-400 text-white p-6 rounded-xl shadow-md text-center">
+          <div className="bg-white text-blue-700 font-black rounded-lg px-6 py-2 text-lg shadow inline-block">
+            Justificar ausência
+          </div>
+          <p className="text-blue-100 mt-2 text-sm">
+            Informe seu nome, a data da reunião e o motivo da ausência.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <form onSubmit={tentarEnviar} className="space-y-4 mt-6">
+
+          {/* Nome */}
+          <div className="flex items-center border rounded-lg bg-gray-50">
+            <UserIcon className="h-6 w-6 text-gray-500 ml-3" />
+            <input
+              type="text"
+              placeholder="Seu nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="w-full p-3 bg-transparent outline-none"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          {/* Data */}
+          <div className="flex items-center border rounded-lg bg-gray-50">
+            <CalendarDaysIcon className="h-6 w-6 text-gray-500 ml-3" />
+            <input
+              type="text"
+              placeholder="Data da reunião (dd/mm/aaaa)"
+              maxLength={10}
+              value={dataReuniao}
+              onChange={formatarData}
+              className="w-full p-3 bg-transparent outline-none"
+            />
+          </div>
+
+          {/* Motivo */}
+          <textarea
+            placeholder="Motivo da ausência"
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            className="w-full p-3 border rounded-lg bg-gray-50 min-h-[120px] outline-none"
+          />
+
+          {/* Botão Enviar */}
+          <button
+            type="submit"
+            disabled={enviando}
+            className={`w-full py-3 rounded-lg text-white font-bold transition 
+              ${enviando ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"}`}
           >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {enviando ? "Enviando..." : "Enviar Justificativa"}
+          </button>
+        </form>
+
+      </div>
+    </main>
   );
 }
