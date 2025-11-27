@@ -80,7 +80,7 @@ export default function Home() {
       {/* NAVBAR */}
       <header className="fixed top-0 left-0 w-full bg-blue-600 shadow-md z-50">
         <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
-          <h1 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white tracking-wide flex items-center gap-2">
             <span className="text-4xl">📝</span>
             PIA CRUZEIRO – REGISTRO DE JUSTIFICATIVA DE AUSÊNCIA
           </h1>
@@ -153,8 +153,7 @@ export default function Home() {
       )}
 
       {/* CARD */}
-      <div className="bg-white shadow-xl rounded-xl p-10 w-full max-w-xl border border-gray-200">
-
+      <div className="bg-white shadow-xl rounded-xl p-6 sm:p-10 w-full max-w-xl">
         <div className="bg-gradient-to-r from-blue-600 to-blue-400 text-white p-6 rounded-xl shadow-md text-center">
           <div className="bg-white text-blue-700 font-black rounded-lg px-6 py-2 text-lg shadow inline-block">
             Justificar ausência
