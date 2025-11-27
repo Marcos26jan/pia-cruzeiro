@@ -82,7 +82,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
           <h1 className="text-base sm:text-xl font-bold text-white tracking-wide flex items-center gap-2">
             <span className="text-4xl">📝</span>
-            PIA CRUZEIRO – JUSTIFICATIVAS DE AUSÊNCIA
+            JUSTIFICATIVAS DE AUSÊNCIA
           </h1>
 
           <button
