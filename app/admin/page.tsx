@@ -187,7 +187,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6 font-sans relative mt-14">
+    <main className="max-w-4xl mx-auto p-6 font-sans relative mt-18">
 
 {/* NAVBAR IGUAL À DA PÁGINA DE REGISTRO DE AUSÊNCIAS */}
 <nav className="fixed top-0 left-0 w-full bg-[#003366] shadow-lg z-50">
