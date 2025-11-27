@@ -200,7 +200,7 @@ export default function AdminPage() {
       </div>
 
       <h1 className="text-lg font-semibold tracking-wide">
-        Painel Administrativo – Lista de justificativas
+      Lista de justificativas
       </h1>
     </div>
 
