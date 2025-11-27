@@ -9,7 +9,7 @@ export default function LoginPage() {
   function fazerLogin(e: any) {
     e.preventDefault();
 
-    if (senha === "1234") {
+    if (senha === "pia@2025") {
       localStorage.setItem("logado", "sim");
       window.location.href = "/admin";
     } else {
